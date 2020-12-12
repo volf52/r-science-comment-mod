@@ -3,3 +3,5 @@ node_modules
 *.pyc
 .vscode
 __pycache__
+.jovianrc
+.ipynb_checkpoints/
