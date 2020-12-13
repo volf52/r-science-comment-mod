@@ -1,4 +1,7 @@
-from fastapi import FastAPI, Request, Form
+from pathlib import Path
+
+from fastapi import FastAPI, Form, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 
@@ -12,6 +15,9 @@ from modcom.api import api_router
 
 
 app = FastAPI()
+
+Path("static").mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
@@ -33,6 +39,7 @@ def results(
     response = templates.TemplateResponse("result.jinja2", context=ctx)
 
     return response
+
 
 if __name__ == "__main__":
     import uvicorn
