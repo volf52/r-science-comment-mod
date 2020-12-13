@@ -6,7 +6,9 @@ from pydantic import BaseModel
 class ClassificationResponse(BaseModel):
     success: bool
     msg: str
-    prediction: Optional[List[float]]
+    prob_remove: Optional[float]
+    prob_not_remove: Optional[float]
+    will_remove: Optional[bool]
 
 
 class MLModel(BaseModel):

@@ -37,7 +37,7 @@ def results(
     request: Request, comment: str = Form(...), model: str = Form(...)
 ):
     result = predict_comment(comment, model)
-    ctx = {"request": request, "msg": result.msg}
+    ctx = {"request": request, "result": result}
     response = templates.TemplateResponse("result.jinja2", context=ctx)
 
     return response

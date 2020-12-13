@@ -282,9 +282,16 @@ def predict_comment(comment: str, model_key: str) -> ClassificationResponse:
     pred = clf.predict(comment)
     not_remove_prob, remove_prob = pred
 
-    if remove_prob > not_remove_prob:
+    will_remove = remove_prob > not_remove_prob
+    if will_remove:
         msg = "Comment will be removed"
     else:
         msg = "Comment will not be removed"
 
-    return ClassificationResponse(success=True, msg=msg, prediction=pred)
+    return ClassificationResponse(
+        success=True,
+        msg=msg,
+        prob_remove=remove_prob,
+        prob_not_remove=not_remove_prob,
+        will_remove=will_remove
+    )

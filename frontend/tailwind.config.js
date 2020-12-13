@@ -1,7 +1,7 @@
 module.exports = {
   purge: {
-    enabled: false,
-    content: ['../templates/**/*.jinja2']
+    enabled: true,
+    content: ["../templates/**/*.jinja2"],
   },
   darkMode: false, // or 'media' or 'class'
   theme: {
@@ -13,7 +13,5 @@ module.exports = {
   variants: {
     extend: {},
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-  ],
-}
+  plugins: [require("@tailwindcss/forms")],
+};

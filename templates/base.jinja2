@@ -1,19 +1,22 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Reddit Comment Moderation Classifier</title>
-  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
-</head>
-<body>
-{# gradient-to-r from-teal-400 to-blue-500 #}
-<div class="bg-gradient-to-l from-purple-400  to-blue-500 min-h-screen flex items-center justify-center">
-  <div class="max-w-md px-10 py-12 bg-white rounded-lg shadow-lg">
-  {% block content %}{% endblock %}
-  </div>
-</div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Reddit Comment Moderation Classifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}" />
+  </head>
+  <body>
+    <div
+      class="bg-gradient-to-l from-purple-400 to-blue-500 min-h-screen flex items-center justify-center"
+    >
+      <div class="max-w-md px-10 py-12 bg-white rounded-lg shadow-lg">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </body>
 </html>

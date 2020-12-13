@@ -1,7 +1,14 @@
-{% extends 'base.jinja2' %}
+{% extends 'base.jinja2' %} {% block content %}
 
-{% block content %}
+<h2
+  class="{{ 'text-red-500' if result.will_remove else 'text-green-500' }} text-2xl font-bold leading-snug"
+>
+  {{ result.msg }}
+</h2>
 
-  <strong>{{ msg }}</strong>
+<p class="py-4">
+  <span class="font-semibold">Removal Probability: </span>{{
+  result.prob_remove|round(5)*100 }}%
+</p>
 
 {% endblock %}
