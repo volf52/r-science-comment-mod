@@ -1,0 +1,10 @@
+{% extends 'base.jinja2' %}
+
+{% block content %}
+  <strong>{{ type }}</strong>
+<form method="post">
+  <textarea name="comment" id="comment-area" cols="30" rows="10"></textarea>
+  <input type="text" name="model" id="model-key">
+  <input type="submit" value="Submit">
+</form>
+{% endblock %}
