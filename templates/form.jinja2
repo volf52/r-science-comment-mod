@@ -1,10 +1,63 @@
 {% extends 'base.jinja2' %}
 
 {% block content %}
-  <strong>{{ type }}</strong>
-<form method="post">
-  <textarea name="comment" id="comment-area" cols="30" rows="10"></textarea>
-  <input type="text" name="model" id="model-key">
-  <input type="submit" value="Submit">
-</form>
+
+  <form method="post">
+    {#      <div class="antialiased text-gray-900 px-2">#}
+    {#        <div class="max-w-xl max-auto py-12 divide-y md:max-w-4x1">#}
+    {#          <div class="py-12">#}
+    {#            <h2 class="text-2x1 font-bold">Comment Moderation</h2>#}
+    {#            <div class="mt-8 max-w-md">#}
+    {#              <div class="grid grid-cols-1 gap-6">#}
+    {#                <label class="block">#}
+    {#                  <span class="text-gray-700">Model to Use</span>#}
+    {#                  <select name="model" id="model-sel"#}
+    {#                          class="block w-full mt-1 rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0">#}
+    {#                    <option value="simple_logistic">Simple Logistic</option>#}
+    {#                    <option value="spacy_textcat">Spacy</option>#}
+    {#                  </select>#}
+    {#                </label>#}
+    {#                <label class="block">#}
+    {#                  <span class="text-gray-700">Comment (min 10 characters)</span>#}
+    {#                  <textarea name="comment" id="comment"#}
+    {#                            class="mt-1 block w-full rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0"></textarea>#}
+    {#                </label>#}
+    {#                <label class="block">#}
+    {#                  <input type="submit" value="Submit"#}
+    {#                         class="mt-1 block w-full rounded-md bg-gray-100 border-transparent">#}
+    {#                </label>#}
+    {#              </div>#}
+    {#            </div>#}
+    {#          </div>#}
+    {#        </div>#}
+    {#      </div>#}
+
+    <h2 class="text-gray-900 text-2xl font-bold leading-snug">
+      Comment Moderation
+    </h2>
+
+    <div class="py-4">
+      <label for="model-key" class=" block text-gray-700 font-medium">Model to use</label>
+      <select name="model" id="model-key"
+              class="block w-full mt-1 rounded-md bg-gray-100 border-transparent focus:border-gray-500 focus:bg-white focus:ring-0">
+        <option value="simple_logistic">Simple Logistic</option>
+        <option value="spacy_textcat">Spacy</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="comment" class="block text-sm font-medium text-gray-700">
+        Comment
+      </label>
+      <div class="mt-1">
+        <textarea id="comment" name="comment" rows="3"
+                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border-gray-300 rounded-md"
+        ></textarea>
+      </div>
+    </div>
+
+    <input type="submit" value="Classify"
+           class="bg-gradient-to-r from-red-400 to-blue-500 hover:from-pink-500 hover:to-orange-500 mt-6 inline-flex items-center px-6 py-3 text-white font-semibold rounded-md shadow-sm w-full">
+
+  </form>
 {% endblock %}

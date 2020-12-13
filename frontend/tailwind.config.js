@@ -1,10 +1,13 @@
 module.exports = {
   purge: {
-    enabled: true,
+    enabled: false,
     content: ['../templates/**/*.jinja2']
   },
   darkMode: false, // or 'media' or 'class'
   theme: {
+    container: {
+      center: true,
+    },
     extend: {},
   },
   variants: {

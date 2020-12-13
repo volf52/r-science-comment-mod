@@ -9,6 +9,11 @@
   <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
 </head>
 <body>
-{% block content %}{% endblock %}
+{# gradient-to-r from-teal-400 to-blue-500 #}
+<div class="bg-gradient-to-l from-purple-400  to-blue-500 min-h-screen flex items-center justify-center">
+  <div class="max-w-md px-10 py-12 bg-white rounded-lg shadow-lg">
+  {% block content %}{% endblock %}
+  </div>
+</div>
 </body>
 </html>
