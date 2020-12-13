@@ -1,13 +1,23 @@
 import html
 import re
-from typing import List, Union
+from abc import ABC, abstractmethod
+from functools import lru_cache
+from pathlib import Path
+from typing import List, Optional, Union
 
+import joblib
 import numpy as np
 import spacy
 from sklearn.base import TransformerMixin
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from spacy.lang.en import STOP_WORDS
 from spacy.language import Doc, Language
 from spacy.tokens.token import Token
-from spacy.lang.en import STOP_WORDS
+
+from .config import APIConfig, ModelSettings, get_api_settings
+from .models import ClassificationResponse
 
 try:
     import en_core_web_sm
@@ -101,11 +111,11 @@ class CleanTextTransformer(TransformerMixin):
 
 
 class TextPreprocessor:
-    __slots__ = "_html_cleaner", "_spacy_tokenizer"
+    __slots__ = "_html_cleaner", "_tokenizer"
 
     def __init__(self):
         self._html_cleaner = CleanTextTransformer()
-        self._spacy_tokenizer = SpacyTokenTransformer()
+        self._tokenizer = SpacyTokenTransformer()
 
     def clean_and_tokenize(
         self, txt: Union[str, List[str], np.ndarray]
@@ -122,12 +132,153 @@ class TextPreprocessor:
             )
 
         txt_processed = self._html_cleaner.transform(txt)
-        txt_processed = self._spacy_tokenizer.transform(txt_processed)
+        txt_processed = self._tokenizer.transform(txt_processed)
 
         return txt_processed
 
+    def clean_single(self, txt: str) -> str:
+        return self._html_cleaner.transform_clean_text(txt)
+
+    def tokenize_single(self, clean_text: str) -> List[str]:
+        return self._tokenizer.transform_to_tokens(clean_text)
+
     def clean_and_tokenize_single(self, txt: str) -> List[str]:
-        txt_proc = self._html_cleaner.transform_clean_text(txt)
-        txt_proc = self._spacy_tokenizer.transform_to_tokens(txt_proc)
+        txt_proc = self.clean_single(txt)
+        txt_proc = self.tokenize_single(txt)
 
         return txt_proc
+
+
+CLASSIFIER = Union[LogisticRegression, SVC]
+VECTORIZER = Union[TfidfVectorizer, CountVectorizer]
+
+
+class Model(ABC):
+    __slots__ = "_preproc"
+
+    def __init__(self, preproc: TextPreprocessor = None):
+        self._preproc = preproc if preproc is not None else TextPreprocessor()
+
+    @abstractmethod
+    def predict(self, clean_comment: str) -> List[float]:
+        pass
+
+
+class ScikitModel(Model):
+    __slots__ = "_clf", "_vectorizer"
+
+    def __init__(
+        self,
+        clf_path: Union[str, Path],
+        *,
+        vectorizer: VECTORIZER,
+        preproc: TextPreprocessor = None,
+    ):
+        super(ScikitModel, self).__init__(preproc)
+        self._clf: CLASSIFIER = joblib.load(clf_path)
+        self._vectorizer = vectorizer
+
+    def predict(self, comment: str) -> List[float]:
+        vec = self._preproc.clean_and_tokenize_single(comment)
+        vec = self._vectorizer.transform([vec])
+        prob = self._clf.predict_proba(vec)
+
+        return list(prob[0])
+
+
+class SpacyModel(Model):
+    POSITVE = "REMOVED"
+    NEGATIVE = "NOTREMOVED"
+
+    __slots__ = "_nlp"
+
+    def __init__(
+        self, path: Union[str, Path], *, preproc: TextPreprocessor = None
+    ):
+        super(SpacyModel, self).__init__(preproc)
+        self._nlp = spacy.load(path)
+
+    def predict(self, comment: str) -> List[float]:
+        clean_comment = self._preproc.clean_single(comment)
+        doc: spacy.language.Doc = self._nlp(clean_comment)
+
+        categories = doc.cats
+        probs = [categories[self.NEGATIVE], categories[self.POSITVE]]
+
+        return probs
+
+
+class ModelLoader:
+    __slots__ = "_settings", "_models", "_vec", "_preproc"
+
+    def __init__(self, settings: APIConfig, vectorizer: VECTORIZER = None):
+        self._settings = settings
+        self._models = {}
+
+        if vectorizer is None:
+            print("Loading vectorizer...")
+            pth = self.get_full_path(self._settings.vectorizer)
+            vectorizer = joblib.load(pth)
+
+        self._vec = vectorizer
+        self._preproc = TextPreprocessor()
+
+        self.__load_available_models()
+
+    def load_model(self, model: ModelSettings):
+        pth = self.get_full_path(model.name)
+
+        print(f"Loading {model.name}...")
+        preproc = self._preproc
+        if model.type == "spacy":
+            m = SpacyModel(pth, preproc=preproc)
+        elif model.type == "sklearn":
+            m = ScikitModel(pth, vectorizer=self._vec, preproc=preproc)
+        else:
+            raise ValueError(f"Unrecognized model: {model}")
+
+        self._models[model.name] = m
+
+    def __load_available_models(self):
+        total = len(self._settings.available_models)
+        print(f"Loading {total} models")
+        for model in self._settings.available_models:
+            self.load_model(model)
+
+    @property
+    def vectorizer(self):
+        return self._vec
+
+    def get_full_path(self, name: str):
+        return self._settings.model_dir.joinpath(
+            f"{name}.{self._settings.model_ext}"
+        )
+
+    def get_model(self, model: str) -> Optional[Model]:
+        return self._models.get(model, None)
+
+
+MODEL_LOADER = ModelLoader(get_api_settings())
+
+
+@lru_cache
+def get_model_loader():
+    return MODEL_LOADER
+
+
+def predict_comment(comment: str, model_key: str) -> ClassificationResponse:
+    if len(comment) < 10:
+        return ClassificationResponse(
+            success=False, msg="Comment is too short"
+        )
+
+    clf = MODEL_LOADER.get_model(model_key)
+
+    if clf is None:
+        return ClassificationResponse(
+            success=False, msg=f"No such classifier: {model_key}"
+        )
+
+    pred = clf.predict(comment)
+
+    return ClassificationResponse(success=True, msg="Ok", prediction=pred)

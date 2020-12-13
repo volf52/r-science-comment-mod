@@ -1,23 +1,38 @@
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request, Form
+from fastapi.templating import Jinja2Templates
 
 
-# Saved along with Tf-Idf vectorizer. Requires to function
+# Saved along with Tf-Idf vectorizer. Required to load the serialized vectorizer
 def placeholder(x):
     return x
 
 
-from modcom.api import router
+from modcom.ml import predict_comment
+from modcom.api import api_router
+
 
 app = FastAPI()
 
-app.include_router(router, prefix="/api")
+templates = Jinja2Templates(directory="templates")
+
+app.include_router(api_router, prefix="/api")
 
 
 @app.get("/")
-def index():
-    return FileResponse("./frontend/index.html")
+def index(request: Request):
+    ctx = {"request": request, "type": "something"}
+    return templates.TemplateResponse("form.jinja2", context=ctx)
 
+
+@app.post("/")
+def results(
+    request: Request, comment: str = Form(...), model: str = Form(...)
+):
+    result = predict_comment(comment, model)
+    ctx = {"request": request, "msg": result.msg}
+    response = templates.TemplateResponse("result.jinja2", context=ctx)
+
+    return response
 
 if __name__ == "__main__":
     import uvicorn

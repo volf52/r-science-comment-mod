@@ -1,32 +1,23 @@
 from fastapi import APIRouter, Form, Request
-from .config import get_api_settings
-from .ml import TextPreprocessor
-from .models import ModelLoader
 
-router = APIRouter()
-settings = get_api_settings()
-text_preproc = TextPreprocessor()
+from .ml import predict_comment
+from .models import ClassificationResponse
 
-model_loader = ModelLoader(settings)
-vectorizer = model_loader.vectorizer
+api_router = APIRouter()
 
 
-@router.get("/hello", tags=["test"])
+@api_router.get("/hello", tags=["test"])
 async def hello_there():
     return {"msg": "Hello there"}
 
 
-@router.get("/hello/{name}", tags=["test"])
+@api_router.get("/hello/{name}", tags=["test"])
 async def hello_user(name: str):
     return {"msg": f"Hello {name}"}
 
 
-@router.post("/ml", tags=["form"])
-async def ml_dodo(req: Request, comment: str = Form(...), model: str = Form(...)):
-    clf = model_loader.get_model(model)
-
-    if clf is None:
-        return {'msg': 'No such model exists. Check your `model` key'}
-
-    pred = clf.predict(comment)
-    return {"msg": f'content is "{comment}"', "preds": pred}
+@api_router.post("/ml", tags=["form"], response_model=ClassificationResponse)
+async def ml_dodo(
+    req: Request, comment: str = Form(...), model: str = Form(...)
+):
+    return predict_comment(comment, model)

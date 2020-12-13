@@ -18,10 +18,11 @@ class APIConfig(BaseConfig):
 
     available_models: List[ModelSettings] = [
         ModelSettings(name="simple_logistic", type="sklearn"),
-        ModelSettings(name='spacy_textcat', type='spacy')
+        ModelSettings(name="spacy_textcat", type="spacy"),
     ]
 
+API_CONFIG = APIConfig()
 
 @lru_cache
 def get_api_settings() -> APIConfig:
-    return APIConfig()
+    return API_CONFIG
