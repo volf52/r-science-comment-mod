@@ -2,27 +2,30 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List
 
-from pydantic import BaseConfig, BaseModel
+from pydantic import BaseConfig
+
+from modcom.models import MLModel
 
 
-class ModelSettings(BaseModel):
-    name: str
-    type: str
-
-
-class APIConfig(BaseConfig):
+class AppConfig(BaseConfig):
     model_dir: Path = Path(__file__).parent.joinpath("../models").resolve()
     model_ext: str = "ml"
 
     vectorizer: str = "vectorizer"
 
-    available_models: List[ModelSettings] = [
-        ModelSettings(name="simple_logistic", type="sklearn"),
-        ModelSettings(name="spacy_textcat", type="spacy"),
+    available_models: List[MLModel] = [
+        MLModel(
+            name="simple_logistic",
+            type="sklearn",
+            display_name="Simple Logistic Classifier",
+        ),
+        MLModel(name="spacy_textcat", type="spacy", display_name="Spacy"),
     ]
 
-API_CONFIG = APIConfig()
+
+API_CONFIG = AppConfig()
+
 
 @lru_cache
-def get_api_settings() -> APIConfig:
+def get_app_settings() -> AppConfig:
     return API_CONFIG

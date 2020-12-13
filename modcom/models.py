@@ -7,3 +7,9 @@ class ClassificationResponse(BaseModel):
     success: bool
     msg: str
     prediction: Optional[List[float]]
+
+
+class MLModel(BaseModel):
+    name: str
+    type: str
+    display_name: str

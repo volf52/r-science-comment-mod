@@ -16,8 +16,8 @@ from spacy.lang.en import STOP_WORDS
 from spacy.language import Doc, Language
 from spacy.tokens.token import Token
 
-from .config import APIConfig, ModelSettings, get_api_settings
-from .models import ClassificationResponse
+from .config import AppConfig, get_app_settings
+from .models import ClassificationResponse, MLModel
 
 try:
     import en_core_web_sm
@@ -211,7 +211,7 @@ class SpacyModel(Model):
 class ModelLoader:
     __slots__ = "_settings", "_models", "_vec", "_preproc"
 
-    def __init__(self, settings: APIConfig, vectorizer: VECTORIZER = None):
+    def __init__(self, settings: AppConfig, vectorizer: VECTORIZER = None):
         self._settings = settings
         self._models = {}
 
@@ -225,7 +225,7 @@ class ModelLoader:
 
         self.__load_available_models()
 
-    def load_model(self, model: ModelSettings):
+    def load_model(self, model: MLModel):
         pth = self.get_full_path(model.name)
 
         print(f"Loading {model.name}...")
@@ -258,7 +258,7 @@ class ModelLoader:
         return self._models.get(model, None)
 
 
-MODEL_LOADER = ModelLoader(get_api_settings())
+MODEL_LOADER = ModelLoader(get_app_settings())
 
 
 @lru_cache
