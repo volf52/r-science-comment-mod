@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "modcom"
-version = "0.1.0"
+version = "0.7.0"
 description = ""
 authors = ["Arslan <rslnkrmt2552@gmail.com>"]
 
