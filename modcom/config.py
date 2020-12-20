@@ -13,7 +13,11 @@ class AppConfig(BaseConfig):
     vectorizer: str = "vectorizer"
 
     available_models: List[MLModel] = [
-        # MLModel(name="spacy_ensemble", type="spacy", display_name="Spacy - BOW + CNN"),
+        MLModel(
+            name="spacy_ensemble",
+            type="spacy",
+            display_name="Spacy - BOW + CNN",
+        ),
         MLModel(
             name="spacy_simple_cnn",
             type="spacy",
