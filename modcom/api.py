@@ -17,7 +17,5 @@ async def hello_user(name: str):
 
 
 @api_router.post("/ml", tags=["form"], response_model=ClassificationResponse)
-async def ml_dodo(
-    req: Request, comment: str = Form(...), model: str = Form(...)
-):
+async def ml_dodo(req: Request, comment: str = Form(...), model: str = Form(...)):
     return predict_comment(comment, model)

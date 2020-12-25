@@ -25,9 +25,10 @@ class AppConfig(BaseConfig):
         ),
         MLModel(name="spacy_bow", type="spacy", display_name="Spacy - BOW"),
         MLModel(
-            name="simple_logistic",
+            name="nb_svc",
             type="sklearn",
-            display_name="Simple Logistic Classifier",
+            display_name="NaiveBayes SVM",
+            # https://www.aclweb.org/anthology/P12-2018/, https://nlp.stanford.edu/pubs/sidaw12_simple_sentiment.pdf
         ),
     ]
 

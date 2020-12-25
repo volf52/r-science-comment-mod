@@ -8,10 +8,14 @@ from typing import List, Optional, Union
 import joblib
 import numpy as np
 import spacy
+from scipy.sparse.coo import coo_matrix
+from scipy.sparse.csr import csr_matrix
 from sklearn.base import TransformerMixin
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
 from spacy.lang.en import STOP_WORDS
 from spacy.language import Doc, Language
 from spacy.tokens.token import Token
@@ -27,18 +31,19 @@ except ImportError:
     print("Gotta download the model")
     spacy_cli.download("en_core_web_sm")
 
-nlp: Language = spacy.load(
-    "en_core_web_sm", disable=["parser", "tagger", "ner"]
-)
+nlp: Language = spacy.load("en_core_web_sm", disable=["parser", "tagger", "ner"])
+
+
+# Saved along with Tf-Idf vectorizer. Required to load the serialized vectorizer
+def placeholder(x):
+    return x
 
 
 class SpacyTokenTransformer(TransformerMixin):
     __symbols = set("!$%^&*()_+|~-=`{}[]:\";'<>?,./-")
 
     def transform(self, X: np.ndarray, **kwargs) -> np.ndarray:
-        f = np.vectorize(
-            SpacyTokenTransformer.transform_to_tokens, otypes=[np.object]
-        )
+        f = np.vectorize(SpacyTokenTransformer.transform_to_tokens, otypes=[np.object])
         X_tokenized = f(X)
 
         return X_tokenized
@@ -117,9 +122,7 @@ class TextPreprocessor:
         self._html_cleaner = CleanTextTransformer()
         self._tokenizer = SpacyTokenTransformer()
 
-    def clean_and_tokenize(
-        self, txt: Union[str, List[str], np.ndarray]
-    ) -> np.ndarray:
+    def clean_and_tokenize(self, txt: Union[str, List[str], np.ndarray]) -> np.ndarray:
         if isinstance(txt, str):
             txt = [txt]
 
@@ -149,7 +152,19 @@ class TextPreprocessor:
         return txt_proc
 
 
-CLASSIFIER = Union[LogisticRegression, SVC]
+class NBTransformer(TransformerMixin):
+    def __init__(self, r: np.ndarray, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.r = r
+
+    def transform(self, X: csr_matrix) -> coo_matrix:
+        return X.multiply(self.r)
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+
+
+CLASSIFIER = Union[LogisticRegression, LinearSVC]
 VECTORIZER = Union[TfidfVectorizer, CountVectorizer]
 
 
@@ -192,9 +207,7 @@ class SpacyModel(Model):
 
     __slots__ = "_nlp"
 
-    def __init__(
-        self, path: Union[str, Path], *, preproc: TextPreprocessor = None
-    ):
+    def __init__(self, path: Union[str, Path], *, preproc: TextPreprocessor = None):
         super(SpacyModel, self).__init__(preproc)
         self._nlp = spacy.load(path)
 
@@ -211,19 +224,12 @@ class SpacyModel(Model):
 class ModelLoader:
     __slots__ = "_settings", "_models", "_vec", "_preproc"
 
-    def __init__(self, settings: AppConfig, vectorizer: VECTORIZER = None):
+    def __init__(self, settings: AppConfig):
         self._settings = settings
         self._models = {}
 
-        if vectorizer is None:
-            print("Loading vectorizer...")
-            pth = self.get_full_path(self._settings.vectorizer)
-            vectorizer = joblib.load(pth)
-
-        self._vec = vectorizer
+        self._vec = None
         self._preproc = TextPreprocessor()
-
-        self.__load_available_models()
 
     def load_model(self, model: MLModel):
         pth = self.get_full_path(model.name)
@@ -250,27 +256,31 @@ class ModelLoader:
         return self._vec
 
     def get_full_path(self, name: str):
-        return self._settings.model_dir.joinpath(
-            f"{name}.{self._settings.model_ext}"
-        )
+        return self._settings.model_dir.joinpath(f"{name}.{self._settings.model_ext}")
 
     def get_model(self, model: str) -> Optional[Model]:
         return self._models.get(model, None)
+
+    def load_models(self):
+        if self._vec is None:
+            print("Loading vectorizer...")
+            pth = self.get_full_path(self._settings.vectorizer)
+            self._vec = joblib.load(pth)
+
+        self.__load_available_models()
 
 
 MODEL_LOADER = ModelLoader(get_app_settings())
 
 
-@lru_cache
+@lru_cache(maxsize=1)
 def get_model_loader():
     return MODEL_LOADER
 
 
 def predict_comment(comment: str, model_key: str) -> ClassificationResponse:
     if len(comment) < 10:
-        return ClassificationResponse(
-            success=False, msg="Comment is too short"
-        )
+        return ClassificationResponse(success=False, msg="Comment is too short")
 
     clf = MODEL_LOADER.get_model(model_key)
 
@@ -293,5 +303,5 @@ def predict_comment(comment: str, model_key: str) -> ClassificationResponse:
         msg=msg,
         prob_remove=remove_prob,
         prob_not_remove=not_remove_prob,
-        will_remove=will_remove
+        will_remove=will_remove,
     )

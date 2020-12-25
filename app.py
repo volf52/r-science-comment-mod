@@ -4,19 +4,14 @@ from fastapi import FastAPI, Form, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-
-# Saved along with Tf-Idf vectorizer. Required to load the serialized vectorizer
-def placeholder(x):
-    return x
-
-
-from modcom.ml import predict_comment
 from modcom.api import api_router
 from modcom.config import get_app_settings
-
+from modcom.ml import NBTransformer, get_model_loader, placeholder, predict_comment
 
 app = FastAPI()
 settings = get_app_settings()
+
+get_model_loader().load_models()
 
 Path("static").mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -33,9 +28,7 @@ def index(request: Request):
 
 
 @app.post("/")
-def results(
-    request: Request, comment: str = Form(...), model: str = Form(...)
-):
+def results(request: Request, comment: str = Form(...), model: str = Form(...)):
     result = predict_comment(comment, model)
     result.prob_remove = round(result.prob_remove * 100, 5)
     result.prob_not_remove = round(result.prob_not_remove * 100, 5)
