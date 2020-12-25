@@ -13,7 +13,11 @@ class AppConfig(BaseConfig):
     vectorizer: str = "vectorizer"
 
     available_models: List[MLModel] = [
-        MLModel(name='simple_logistic', type='sklearn', display_name='Logistic Regression CLF'),
+        MLModel(
+            name="simple_logistic",
+            type="sklearn",
+            display_name="Logistic Regression CLF",
+        ),
         MLModel(
             name="spacy_ensemble",
             type="spacy",
@@ -24,6 +28,7 @@ class AppConfig(BaseConfig):
             type="spacy",
             display_name="Spacy - Simple CNN",
         ),
+        MLModel(name="random_forest", type="sklearn", display_name="Random Forest CLF"),
         MLModel(name="spacy_bow", type="spacy", display_name="Spacy - BOW"),
         MLModel(
             name="nb_svc",
