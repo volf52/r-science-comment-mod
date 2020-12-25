@@ -13,6 +13,7 @@ class AppConfig(BaseConfig):
     vectorizer: str = "vectorizer"
 
     available_models: List[MLModel] = [
+        MLModel(name='simple_logistic', type='sklearn', display_name='Logistic Regression CLF'),
         MLModel(
             name="spacy_ensemble",
             type="spacy",
