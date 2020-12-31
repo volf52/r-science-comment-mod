@@ -5,3 +5,5 @@
 - After installing Poetry, run `poetry install`.
 - `poetry run python app.py` to start the server.
 - To limit the number of server workers, use `WORKERS=<int> poetry run python app.py`.
+
+- To build css and js, run `yarn install && yarn build`. Requires [nodejs](https://nodejs.org/en/) and [yarn](https://yarnpkg.com/) to be installed on your sysem.
