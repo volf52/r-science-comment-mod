@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Form, Request
 
-from .ml import predict_comment
-from .models import ClassificationResponse
+from modcom.ml import predict_comment
+from modcom.models import ClassificationResponse
 
 api_router = APIRouter()
 

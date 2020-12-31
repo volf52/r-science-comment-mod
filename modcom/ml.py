@@ -11,17 +11,15 @@ import spacy
 from scipy.sparse.coo import coo_matrix
 from scipy.sparse.csr import csr_matrix
 from sklearn.base import TransformerMixin
-from sklearn.calibration import CalibratedClassifierCV
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
 from spacy.lang.en import STOP_WORDS
 from spacy.language import Doc, Language
 from spacy.tokens.token import Token
 
-from .config import AppConfig, get_app_settings
-from .models import ClassificationResponse, MLModel
+from modcom.config import AppConfig, get_app_settings
+from modcom.models import ClassificationResponse, MLModel
 
 try:
     import en_core_web_sm
