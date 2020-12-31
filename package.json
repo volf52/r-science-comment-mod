@@ -7,8 +7,8 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "install": "cd frontend && yarn install",
-    "build": "cd frontend && yarn build:css && yarn build:js"
+    "install": "yarn --cwd frontend install",
+    "build": "yarn --cwd frontend build:css && yarn --cwd frontend build:js"
   },
   "engines": {
     "yarn": "1.x"
